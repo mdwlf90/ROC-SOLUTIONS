@@ -17,11 +17,14 @@ SPREADSHEET_ID = st.secrets["SPREADSHEET_ID"]
 
 # Helper to handle the Google Credentials from Secrets
 def get_creds():
-    # Streamlit secrets converts the TOML entry into a dictionary automatically
-    creds_dict = st.secrets["gcp_service_account"]
+    # Create a copy of the secrets dict so we don't modify the original
+    creds_dict = dict(st.secrets["gcp_service_account"])
+    
+    # FIX: Manually replace the text "\n" with real newlines
+    creds_dict["private_key"] = creds_dict["private_key"].replace("\\n", "\n")
+    
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
     return ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
-
 # --- CONNECT TO GOOGLE ---
 @st.cache_resource
 def connect_services():
