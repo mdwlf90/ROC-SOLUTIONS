@@ -10,25 +10,26 @@ import os
 st.set_page_config(page_title="Recruiting Portal", page_icon="📝")
 st.title("🚀 Job Application Portal")
 
-# --- 2. CONFIGURATION ---
-# PASTE YOUR KEYS HERE AGAIN
-GEMINI_KEY = "AIzaSyBwvd30Yc_aB032V5r28GUBtNugZrXZXzE"
-SPREADSHEET_ID = "1VYag9Xoc_FWM77-5VDi9n2I7HAYu8p3EMoUukl2fZrc"
-CREDENTIALS_FILE = "credentials.json"
+# --- CONFIGURATION (SECURE) ---
+# We use st.secrets so we don't expose keys in public code
+GEMINI_KEY = st.secrets["GEMINI_KEY"]
+SPREADSHEET_ID = st.secrets["SPREADSHEET_ID"]
 
-# --- 3. CONNECT TO GOOGLE (WITH ERROR CATCHING) ---
+# Helper to handle the Google Credentials from Secrets
+def get_creds():
+    # Streamlit secrets converts the TOML entry into a dictionary automatically
+    creds_dict = st.secrets["gcp_service_account"]
+    scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+    return ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
+
+# --- CONNECT TO GOOGLE ---
 @st.cache_resource
 def connect_services():
-    # Check if credentials file exists
-    if not os.path.exists(CREDENTIALS_FILE):
-        return None, None, f"❌ Error: I cannot find '{CREDENTIALS_FILE}' in this folder."
-
     try:
         genai.configure(api_key=GEMINI_KEY)
         model = genai.GenerativeModel('gemini-2.5-flash-lite') 
         
-        scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-        creds = ServiceAccountCredentials.from_json_keyfile_name(CREDENTIALS_FILE, scope)
+        creds = get_creds() 
         client = gspread.authorize(creds)
         sh = client.open_by_key(SPREADSHEET_ID).sheet1
         return model, sh, None
