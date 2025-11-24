@@ -25,6 +25,7 @@ def get_creds():
     
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
     return ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
+    
 # --- CONNECT TO GOOGLE ---
 @st.cache_resource
 def connect_services():
