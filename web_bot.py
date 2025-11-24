@@ -3,7 +3,7 @@ import gspread
 import re
 from datetime import datetime
 import google.generativeai as genai
-from oauth2client.service_account import ServiceAccountCredentials
+from google.oauth2.service_account import Credentials # <--- NEW MODERN LIBRARY
 import os
 
 # --- 1. DRAW THE UI FIRST ---
@@ -11,7 +11,6 @@ st.set_page_config(page_title="Recruiting Portal", page_icon="📝")
 st.title("🚀 Job Application Portal")
 
 # --- CONFIGURATION (SECURE) ---
-# We use st.secrets so we don't expose keys in public code
 GEMINI_KEY = st.secrets["GEMINI_KEY"]
 SPREADSHEET_ID = st.secrets["SPREADSHEET_ID"]
 
@@ -23,9 +22,12 @@ def get_creds():
     # FIX: Manually replace the text "\n" with real newlines
     creds_dict["private_key"] = creds_dict["private_key"].replace("\\n", "\n")
     
-    scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-    return ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
+    # NEW MODERN SCOPES
+    scopes = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
     
+    # NEW MODERN LOADER
+    return Credentials.from_service_account_info(creds_dict, scopes=scopes)
+
 # --- CONNECT TO GOOGLE ---
 @st.cache_resource
 def connect_services():
